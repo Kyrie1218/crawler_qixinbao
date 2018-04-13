@@ -48,8 +48,8 @@ class Crawler(object):
       profile.set_preference('network.proxy.ssl', agent_ip)
       profile.set_preference('network.proxy.ssl_port', int(agent_port))
       # 对于localhost的不用代理，这里必须要配置，否则无法和 webdriver 通讯
-      profile.set_preference('network.proxy.no_proxies_on', 'localhost,127.0.0.1')
-      profile.set_preference('network.http.use-cache', False)
+      # profile.set_preference('network.proxy.no_proxies_on', 'localhost,127.0.0.1')
+      # profile.set_preference('network.http.use-cache', False)
 
       return profile
 
@@ -58,7 +58,6 @@ class Crawler(object):
   创建网络驱动器
   """
   def createDriver(self):
-    ua = "Mozilla/5.0"
 
     profile = webdriver.FirefoxProfile()
 
@@ -66,7 +65,7 @@ class Crawler(object):
     # proxy 是形如 127.0.0.1:80 的代理字符串
     # user_agent 是形如 'Mozilla/5.0 (X11; Linux x86_64; rv:58.0) Gecko/20100101 Firefox/58.0' 的 UA 字符串
 
-    proxy = '37.187.116.199:80'
+    proxy = '119.28.152.208:80'
     user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:58.0) Gecko/20100101 Firefox/58.0'
 
     if proxy:
@@ -150,7 +149,7 @@ class Crawler(object):
 
 
   def __init__(self):
-    self.company_name_url = 'http://www.qixin.com/search?key=内蒙古 公司&page='
+    self.company_name_url = 'http://github.com'
     self.host = 'localhost'
     self.username = 'root'
     self.password = 'root'
@@ -164,7 +163,7 @@ class Crawler(object):
 
       for vo in range(10):
 
-        url = self.company_name_url+str(vo)
+        url = self.company_name_url #+str(vo)
 
         self.crawlerInfo(url)
 
