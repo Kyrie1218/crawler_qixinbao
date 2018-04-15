@@ -49,10 +49,10 @@ class Init(object):
         self.handle.sadd('ip_address_list', ip)
 
     except Exception as e:
-      print(e)
+      logging.error(e)
 
     finally:
-      print('IP Address 初始化完成')
+      logging.info('IP Address 初始化完成')
 
 
 
@@ -108,13 +108,15 @@ class Init(object):
         self.handle.sadd('user_agent_list', ua)
 
     except Exception as e:
-      print(e)
+      logging.error(e)
 
     finally:
-      print('User Agnet 初始化完成')
+      logging.info('User Agnet 初始化完成')
 
 
 if __name__ == '__main__':
+
+  logging.basicConfig(level=logging.DEBUG)
 
   init = Init()
 

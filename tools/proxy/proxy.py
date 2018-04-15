@@ -7,9 +7,6 @@ import redis
 import logging
 import requests
 from crawler_selenium import Crawler
-from CONFIG import PROXY_POOL_IP
-
-
 
 class Proxy(object):
 
@@ -37,23 +34,21 @@ class Proxy(object):
   """
   def get_proxy(self):
 
-    r = redis.Redis(host=PROXY_POOL_IP, port=6379, db=0)
-
     while True:
 
-      good_proxies = r.srandmember("good_proxies", 1)
+      ip_address = self.handle.srandmember("ip_address_list", 1)
 
-      if good_proxies:
+      if ip_address:
 
-        good_proxies = good_proxies[0].decode("utf-8")  # byte to str
-        good_proxies = {"http": good_proxies, "https": good_proxies}
+        ip_address = ip_address[0].decode("utf-8")  # byte to str
+        ip_address = {"http": ip_address, "https": ip_address}
         header = self.get_user_agent()
 
-        if not self.check_jd(good_proxies, header):
+        if not self.check_jd(ip_address, header):
                 logging.warning('Validate proxy failure, retrying')
                 continue
-        logging.info('Validate SUCCESS，using proxy: %s', good_proxies)
-        return header, good_proxies
+        logging.info('Validate SUCCESS，using proxy: %s', ip_address)
+        return header, ip_address
 
       else:
         logging.critical('No proxy now from remote server, retrying')
@@ -107,13 +102,15 @@ class Proxy(object):
 
         continue
 
+
+
   """
   根据用户代理列表，随机获取 User Agent
   """
   @staticmethod
-  def get_user_agent():
+  def get_user_agent(handle):
 
-    user_agent = random.choice(USER_AGENT_LIST)
+    user_agent = handle.srandmember("user_agent_list", 1)
 
     user_agent = {'user-agent': user_agent}  # dict
 
@@ -122,9 +119,21 @@ class Proxy(object):
     return user_agent
 
 
+
+  """
+  类初始化方法
+  """
+  def __init__(self, host = '127.0.0.1', port = 6379):
+
+    self.handle = redis.Redis(host=host, port=port, db=0)
+
+
 if __name__ == '__main__':
 
   logging.basicConfig(level=logging.DEBUG)
+
+
+
 
   proxy = Proxy()
 
