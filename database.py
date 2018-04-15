@@ -10,11 +10,11 @@ class Database(object):
   """
   def connect(host, username, password, dbname):
     # 打开数据库连接
-    db = pymysql.connect(host, username, password, dbname)
+    db = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='root', db='python', charset='utf8')
 
     return db
 
-
+# (host='127.0.0.1', port=3306, user='root', passwd='', db='tkq1', charset='utf8')
   """
   插入数据表操作
   """
@@ -24,18 +24,20 @@ class Database(object):
     cursor = self.cursor()
 
     # SQL 插入语句
-    sql = """INSERT INTO %s(%s) VALUES (%s)""" % (table, field, value)
-    try:
-       # 执行sql语句
-       return cursor.execute(sql)
-       # 提交到数据库执行
-       self.commit()
-    except:
-       # 如果发生错误则回滚
-       self.rollback()
+    sql = "INSERT INTO %s (`%s`) VALUES ('%s')" % (table, field, value)
 
-    # 关闭数据库连接
-    self.close()
+    try:
+      # 执行sql语句
+      cursor.execute(sql)
+      # 提交到数据库执行
+      self.commit()
+    except Exception as e:
+      print(e)
+      # 如果发生错误则回滚
+      self.rollback()
+
+    # 关闭游标
+    cursor.close()
 
 
   """
@@ -102,13 +104,16 @@ class Database(object):
     sql = "SELECT %s FROM %s %s %s %s " % (field, table, where, group, order)
 
     try:
-       # 执行SQL语句
-       cursor.execute(sql)
+      # 执行SQL语句
+      cursor.execute(sql)
 
-       # 返回查询结果
-       return cursor.fetchall()
+      # 返回查询结果
+      return cursor.fetchall()
     except:
-       print ("Error: unable to fetch data")
+      print ("Error: unable to fetch data")
+
+    # 关闭游标
+    cursor.close()
 
     # 关闭数据库连接
     self.close()
@@ -126,6 +131,10 @@ class Database(object):
        # 发生错误时回滚
        db.rollback()
 
+
+  def close2(self):
+    # 关闭数据库连接
+    self.close()
 
   # def __init__(self):
 
