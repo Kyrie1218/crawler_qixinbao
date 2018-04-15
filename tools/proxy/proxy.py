@@ -11,10 +11,10 @@ from crawler_selenium import Crawler
 class Proxy(object):
 
   """
-  根据用户代理列表，随机获取 User Agent
+  检查代理是否可以使用
   """
   @staticmethod
-  def check_jd(proxy, header):
+  def check(proxy, header):
 
     logging.info('Validating name proxy: %s', proxy)
 
@@ -28,31 +28,6 @@ class Proxy(object):
 
     return False
 
-
-  """
-  根据用户代理列表，随机获取 User Agent
-  """
-  def get_proxy(self):
-
-    while True:
-
-      ip_address = self.handle.srandmember("ip_address_list", 1)
-
-      if ip_address:
-
-        ip_address = ip_address[0].decode("utf-8")  # byte to str
-        ip_address = {"http": ip_address, "https": ip_address}
-        header = self.get_user_agent()
-
-        if not self.check_jd(ip_address, header):
-                logging.warning('Validate proxy failure, retrying')
-                continue
-        logging.info('Validate SUCCESS，using proxy: %s', ip_address)
-        return header, ip_address
-
-      else:
-        logging.critical('No proxy now from remote server, retrying')
-        time.sleep(5)
 
 
 
@@ -104,6 +79,35 @@ class Proxy(object):
 
 
 
+
+  """
+  获得代理IP
+  """
+  def get_ip_address(self):
+
+    while True:
+
+      ip_address = self.handle.srandmember("ip_address_list", 1)
+
+      if ip_address:
+
+        ip_address = ip_address[0].decode("utf-8")  # byte to str
+        ip_address = {"http": ip_address, "https": ip_address}
+        header = self.get_user_agent()
+
+        if not self.check_jd(ip_address, header):
+                logging.warning('Validate proxy failure, retrying')
+                continue
+        logging.info('Validate SUCCESS，using proxy: %s', ip_address)
+        return header, ip_address
+
+      else:
+        logging.critical('No proxy now from remote server, retrying')
+        time.sleep(5)
+
+
+
+
   """
   根据用户代理列表，随机获取 User Agent
   """
@@ -120,12 +124,14 @@ class Proxy(object):
 
 
 
+
   """
   类初始化方法
   """
   def __init__(self, host = '127.0.0.1', port = 6379):
 
     self.handle = redis.Redis(host=host, port=port, db=0)
+
 
 
 if __name__ == '__main__':
