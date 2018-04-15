@@ -3,7 +3,7 @@
 
 import pymysql
 
-class Database(object):
+class Mysql(object):
 
   """
   连接数据库

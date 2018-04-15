@@ -14,12 +14,13 @@ from selenium.webdriver.common.proxy import *
 import time
 import uuid
 import random
-import database
 import configparser
 import os
-import redis
 
 
+from tools.database.mysql import mysql
+from tools.database.redis import redis
+from tools.proxy.proxy import proxy
 
 
 
@@ -256,4 +257,12 @@ class Crawler(object):
 
 if __name__ == '__main__':
 
-  Crawler()
+  self.handle = redis.Redis(self.redis_host, self.redis_port)
+
+  for vo in list:
+    self.handle.sadd('user_agent_list', vo)
+    # self.handle.sadd('ip_address_list', name)
+
+
+
+  # Crawler()
