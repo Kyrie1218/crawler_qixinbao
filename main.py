@@ -23,7 +23,7 @@
 # from tools.proxy.proxy import proxy
 
 import configparser
-from tools.crawler.driver import Driver
+from tools.crawler.crawler import Crawler
 
 
 
@@ -128,10 +128,10 @@ if __name__ == '__main__':
   # 获得配置文件信息
   init = init()
 
-  # 初始化 Driver 对象
-  driver = Driver(init['redis_host'], init['redis_port'], init['level'])
+  # 初始化 Crawler 对象
+  crawler = Crawler(init['redis_host'], init['redis_port'], init['level'])
 
-  driver2 = driver.get_driver()
+  handle = crawler.get_driver()
 
-  print(driver2)
+  print(handle)
 

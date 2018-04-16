@@ -133,7 +133,7 @@ class Proxy(object):
 
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-  proxy = Proxy()
+#   proxy = Proxy()
 
