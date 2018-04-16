@@ -4,35 +4,14 @@
 import random
 import time
 import redis
-import logging
 import requests
-from crawler_selenium import Crawler
+from ..logger.logger import Logger
 
 class Proxy(object):
 
-  """
-  检查代理是否可以使用
-  """
-  @staticmethod
-  def check(proxy, header):
-
-    logging.info('Validating name proxy: %s', proxy)
-
-    cr = Crawler(proxy)
-
-    item_name = cr.get_jd_item('5089253')  # Iphone X
-
-    if item_name:
-
-      return True
-
-    return False
-
-
-
 
   """
-  根据用户代理列表，随机获取 User Agent
+  获得代理IP
   """
   def get_proxy_zhima(self):
 
@@ -45,11 +24,11 @@ class Proxy(object):
 
       request = requests.get(url, headers=header, timeout=5)
 
-      logging.warning('Zhima Proxy: %s', request.json())
+      Logger.warning('Zhima Proxy: %s', request.json())
 
       if not request.json()['data']:
 
-        logging.warning('No Zhima Proxy anymore or too fast. Retrying')
+        Logger.warning('No Zhima Proxy anymore or too fast. Retrying')
 
         time.sleep(5)
 
@@ -65,13 +44,13 @@ class Proxy(object):
 
         good_proxies = {"http": good_proxies, "https": good_proxies}
 
-        logging.info('Zhima get proxy, using proxy: %s', good_proxies)
+        Logger.info('Zhima get proxy, using proxy: %s', good_proxies)
 
         return header, good_proxies
 
       except:
 
-        logging.warning('No Zhima Proxy now. Retrying')
+        Logger.warning('No Zhima Proxy now. Retrying')
 
         time.sleep(5)
 
@@ -85,25 +64,18 @@ class Proxy(object):
   """
   def get_ip_address(self):
 
-    while True:
+    try:
 
       ip_address = self.handle.srandmember("ip_address_list", 1)
 
-      if ip_address:
+      data = ip_address[0].decode()
 
-        ip_address = ip_address[0].decode("utf-8")  # byte to str
-        ip_address = {"http": ip_address, "https": ip_address}
-        header = self.get_user_agent()
+    except Exception as e:
 
-        if not self.check_jd(ip_address, header):
-                logging.warning('Validate proxy failure, retrying')
-                continue
-        logging.info('Validate SUCCESS，using proxy: %s', ip_address)
-        return header, ip_address
+      Logger.error(e)
 
-      else:
-        logging.critical('No proxy now from remote server, retrying')
-        time.sleep(5)
+    return data
+
 
 
 
@@ -111,16 +83,41 @@ class Proxy(object):
   """
   根据用户代理列表，随机获取 User Agent
   """
+  def get_user_agent(self):
+
+    try:
+
+      user_agent = self.handle.srandmember("user_agent_list", 1)
+
+      data = user_agent[0].decode()
+
+    except Exception as e:
+
+      Logger.error(e)
+
+    return data
+
+
+
+
+
+  """
+  检查代理是否可以使用
+  """
   @staticmethod
-  def get_user_agent(handle):
+  def check(proxy, header):
 
-    user_agent = handle.srandmember("user_agent_list", 1)
+    Logger.info('Validating name proxy: %s', proxy)
 
-    user_agent = {'user-agent': user_agent}  # dict
+    cr = Crawler(proxy)
 
-    logging.debug('Generating header: %s', user_agent)
+    info = cr.get_jd_item('5089253')  # Iphone X
 
-    return user_agent
+    if info:
+
+      return True
+
+    return False
 
 
 
@@ -128,7 +125,9 @@ class Proxy(object):
   """
   类初始化方法
   """
-  def __init__(self, host = '127.0.0.1', port = 6379):
+  def __init__(self, host = '127.0.0.1', port = 6379, level = 'info'):
+
+    Logger.init(level)
 
     self.handle = redis.Redis(host=host, port=port, db=0)
 
@@ -136,14 +135,5 @@ class Proxy(object):
 
 if __name__ == '__main__':
 
-  logging.basicConfig(level=logging.DEBUG)
-
-
-
-
   proxy = Proxy()
 
-  proxy.get_user_agent()
-
-  # p.get_proxy()
-  proxy.get_proxy_zhima()
