@@ -67,3 +67,29 @@ def _filter_answer(bs_obj):
     if not images:
         return
     return images
+
+
+
+#   def filter_tags(self, htmlstr):
+#     print(htmlstr)
+#     return
+#     #先过滤CDATA
+#     # re_cdata   = re.compile('//<!\[CDATA\[[^>]*//\]\]>',re.I) #匹配CDATA
+#     # re_script  = re.compile('<\s*script[^>]*>[^<]*<\s*/\s*script\s*>',re.I)#Script
+#     # re_style   = re.compile('<\s*style[^>]*>[^<]*<\s*/\s*style\s*>',re.I)#style
+#     # re_br      = re.compile('<br\s*?/?>')#处理换行
+#     re_h       = re.compile('</?\w+[^>]*>')#HTML标签
+#     # re_comment = re.compile('<!--[^>]*-->')#HTML注释
+#     # html          = re_cdata.sub('',htmlstr)#去掉CDATA
+
+
+#     # html          = re_script.sub('',html) #去掉SCRIPT
+#     # html          = re_style.sub('',html)#去掉style
+#     # html          = re_br.sub('\n',html)#将br转换为换行
+#     html          = re_h.sub('',htmlstr) #去掉HTML 标签
+#     # html          = re_comment.sub('',html)#去掉HTML注释
+#     #去掉多余的空行
+#     # blank_line = re.compile('\n+')
+#     # html          = blank_line.sub('\n',html)
+
+#     return html

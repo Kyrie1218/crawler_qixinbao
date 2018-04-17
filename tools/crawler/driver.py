@@ -46,16 +46,18 @@ class Driver(object):
       profile.set_preference("browser.cache.disk_cache_ssl", False)
 
       # 获得初始化生成的IP随机地址 样式：'119.28.152.208:80'
-      ip_address = self.proxy.get_ip_address()
+      # ip_address = self.proxy.get_ip_address()
 
-      if ip_address:
-        profile = self._set_proxy(profile, ip_address)
+      # if ip_address:
+        # profile = self._set_proxy(profile, ip_address)
 
       # 获得初始化生成的 User Agent 信息 样式：'Mozilla/5.0 (X11; Linux x86_64; rv:58.0) Gecko/20100101 Firefox/58.0'
       user_agent = self.proxy.get_user_agent()
 
       if user_agent:
         profile = self._set_user_agent(profile, user_agent)
+
+      profile.update_preferences()
 
       driver = webdriver.Firefox(profile, executable_path='lib/geckodriver.exe')
 
@@ -78,11 +80,15 @@ class Driver(object):
     try:
 
       proxy_list = proxy_host.split(':')
+
       agent_ip = proxy_list[0]
       agent_port = proxy_list[1]
 
-      profile.set_preference('network.proxy.type', 1)  # 使用代理
-      profile.set_preference('network.proxy.share_proxy_settings', True)  # 所有协议公用一种代理配置
+      # 使用手动代理
+      profile.set_preference('network.proxy.type', 1)
+
+      # 所有协议公用一种代理配置
+      # profile.set_preference('network.proxy.share_proxy_settings', True)
       profile.set_preference('network.proxy.http', agent_ip)
       profile.set_preference('network.proxy.http_port', int(agent_port))
       profile.set_preference('network.proxy.ssl', agent_ip)
@@ -152,7 +158,7 @@ class Driver(object):
 
     try:
 
-      info = self._get_cookie(driver)
+      # info = self._get_cookie(driver)
 
       # out1={ u'domain':u'www.factual.com',u'expiry':2147385600, u'httpOnly':True ,
       # u'secure': False ,u'name':u'_www_session',u'value':u'ekRNZHU2YkxUK3JiNTlJcEhWWGs5'}
@@ -162,9 +168,9 @@ class Driver(object):
       # 删除所有cookie
       driver.delete_all_cookies()
 
-      if info:
+      # if info:
         # 添加cookie信息
-        driver.add_cookie(info)
+        # driver.add_cookie(info)
 
     except Exception as e:
 
