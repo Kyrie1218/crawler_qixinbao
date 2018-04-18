@@ -1,5 +1,7 @@
 import os
 import time
+import redis
+import datetime
 import configparser
 from time import sleep
 from bs4 import BeautifulSoup
@@ -103,12 +105,10 @@ class Crawler(object):
 
       state = True
 
-      print(3)
-
     except Exception as e:
 
       Logger.error('页面没有加载完成，请查找是否存在标签')
-    print(3)
+
     return state
 
 
@@ -132,9 +132,9 @@ class Crawler(object):
     source = self.handle.page_source.encode("utf-8")
 
     # 创建BeautifulSoup对象
-    html_data = BeautifulSoup(source, 'html.parser')
+    soup = BeautifulSoup(source, 'html.parser')
 
-    return html_data
+    return soup
 
 
 
@@ -142,24 +142,62 @@ class Crawler(object):
   """
   获取公司信息
   """
-  def get_company_info(self, html_data):
+  def get_company_info(self, soup):
 
-    data = html_data.select("div.hy_companylist")
+    try:
+
+      body = soup.body
+
+      company_list = body.find('div',{'class':'hy_companylist'}) # 获取body部分
+
+      data = company_list.find('ul') # 获取body部分
+
+      lists = data.find_all('li')
+
+      for k, vo in enumerate(lists):
+
+        number = self._set_only_number()
+
+        name = vo.contents[0].contents[0].string
+        phone = vo.contents[1].string
+        detail = vo.find('dl').find_all('dd')
+
+        if detail[0]:
+          address = detail[0].get_text()
+        else:
+          address = ''
+
+        # if detail[1]:
+        #   content = detail[1].get_text()
+        # else:
+        #   content = ''
+
+        company_info = {
+          'name':name,
+          'phone':phone,
+          'address':address,
+          # 'content':content
+        }
+
+        self._set_only_number()
+
+        # 公司名称
+        self.redis_handel.hmset(name, company_info)
+
+    except Exception as e:
+      Logger.error(e)
 
 
 
-    print(data)
 
-    # return
-    # for tag in html:
+  def _set_only_number(self):
 
-    #   # <class 'bs4.element.Tag'>
-    #   name = tag.string
+    now = datetime.datetime.now()
 
-    #   result = self.handle.sadd('company_name_list', name)
-    #   # print(name)
-    #   # return
-    # # db.close2()
+    result = now.strftime('%Y%m%d%H%M%S%f')
+
+    return result
+
 
 
 
@@ -175,35 +213,11 @@ class Crawler(object):
       html = self.get_html_info()
       data = self.get_company_info(html)
       print(data)
+
+
     else:
       logger.error('因为页面加载失败或无法找到指定元素，程序结束')
 
-
-
-
-
-
-
-
-# def get_data(html_text,sheet):
-#     global sum
-#     bs = BeautifulSoup(html_text, "html.parser")  # 创建BeautifulSoup对象
-#     body=bs.body
-#     # a = body.find_all('div',{'class':'container-fluid'}) # 获取body部分
-#     # b = a[0].contents[1]
-#     # c = b.find('div',{'class':'col-sm-8'})
-#     # grid = c.contents[1]
-#     # gridcontext = grid.find('div',{'id':'data-grid-container'})
-#     # e = gridcontext[0].contents[0]
-#     # f = e.contents[3]
-#     #datacanvas = f.find_all('div',{'class':'grid-canvas'})
-#     datacanvas=body.find('div',{'class':'grid-canvas'})
-#     for data in datacanvas.children:    #data=每个酒店
-#         sheet.write(sum, 0, data.contents[0].contents[0].string)    #写第一个属性link
-#         print data.contents[1].string
-#         for i in range(1,len(data.contents)):    #simple单个酒店下各属性
-#             sheet.write(sum,i,data.contents[i-1].string)
-# sum=sum+1
 
 
 
@@ -240,6 +254,8 @@ class Crawler(object):
     return result
 
 
+
+
   """
   类初始化
   """
@@ -258,8 +274,13 @@ class Crawler(object):
 
     self.url                = info['url']
 
+    self.redis_host = info['redis_host']
+    self.redis_port = info['redis_port']
+
+    self.redis_handel = redis.Redis(self.redis_host, self.redis_port)
+
     # # 初始化 Driver 对象
-    driver = Driver(info['redis_host'], info['redis_port'], info['level'])
+    driver = Driver(self.redis_handel, info['level'])
 
     self.handle = driver.get_driver()
 

@@ -3,7 +3,6 @@
 
 import random
 import time
-import redis
 import requests
 from ..logger.logger import Logger
 
@@ -125,11 +124,11 @@ class Proxy(object):
   """
   类初始化方法
   """
-  def __init__(self, host = '127.0.0.1', port = 6379, level = 'info'):
+  def __init__(self, handle, level = 'info'):
 
     Logger.init(level)
 
-    self.handle = redis.Redis(host=host, port=port, db=0)
+    self.handle = handle
 
 
 

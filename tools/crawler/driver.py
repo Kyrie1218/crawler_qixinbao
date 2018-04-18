@@ -49,7 +49,7 @@ class Driver(object):
       # ip_address = self.proxy.get_ip_address()
 
       # if ip_address:
-        # profile = self._set_proxy(profile, ip_address)
+      #   profile = self._set_proxy(profile, ip_address)
 
       # 获得初始化生成的 User Agent 信息 样式：'Mozilla/5.0 (X11; Linux x86_64; rv:58.0) Gecko/20100101 Firefox/58.0'
       user_agent = self.proxy.get_user_agent()
@@ -68,6 +68,31 @@ class Driver(object):
       Logger.error(e)
 
     return driver
+
+
+  def _set_header(self, profile):
+
+    try:
+
+      # add new header
+      profile.add_extension("modify_headers-0.7.1.1-fx.xpi")
+      profile.set_preference("extensions.modify_headers.currentVersion", "0.7.1.1-fx")
+      profile.set_preference("modifyheaders.config.active", True)
+      profile.set_preference("modifyheaders.headers.count", 1)
+      profile.set_preference("modifyheaders.headers.action0", "Add")
+      profile.set_preference("modifyheaders.headers.name0", "Proxy-Switch-Ip")
+      profile.set_preference("modifyheaders.headers.value0", "yes")
+      profile.set_preference("modifyheaders.headers.enabled0", True)
+
+    except Exception as e:
+
+      Logger.error(e)
+
+    finally:
+
+      Logger.info('代理 IP 设置完成')
+
+    return profile
 
 
 
@@ -91,11 +116,21 @@ class Driver(object):
       # profile.set_preference('network.proxy.share_proxy_settings', True)
       profile.set_preference('network.proxy.http', agent_ip)
       profile.set_preference('network.proxy.http_port', int(agent_port))
-      profile.set_preference('network.proxy.ssl', agent_ip)
-      profile.set_preference('network.proxy.ssl_port', int(agent_port))
+      # profile.set_preference('network.proxy.ssl', agent_ip)
+      # profile.set_preference('network.proxy.ssl_port', int(agent_port))
+      # profile.set_preference("network.proxy.user_name", 'aaaaa')
+      # profile.set_preference("network.proxy.password", 'bbbbb')
       # 对于localhost的不用代理，这里必须要配置，否则无法和 webdriver 通讯
-      # profile.set_preference('network.proxy.no_proxies_on', 'localhost,127.0.0.1')
-      # profile.set_preference('network.http.use-cache', False)
+      profile.set_preference('network.proxy.no_proxies_on', 'localhost,127.0.0.1')
+      profile.set_preference('network.http.use-cache', False)
+
+
+      # # Proxy auto login
+      # profile.add_extension('closeproxy.xpi')
+      # credentials = '{user}:{pass}'.format(**proxy)
+      # credentials = b64encode(credentials.encode('ascii')).decode('utf-8')
+      # profile.set_preference('extensions.closeproxyauth.authtoken', credentials)
+
 
     except Exception as e:
 
@@ -210,13 +245,13 @@ class Driver(object):
   """
   类初始化
   """
-  def __init__(self, host = '127.0.0.1', port = 6379, level = 'info'):
+  def __init__(self, handle, level = 'info'):
 
     # 初始化日志类
     Logger.init(level)
 
     # 加载代理类
-    self.proxy = Proxy(host, port, level)
+    self.proxy = Proxy(handle, level)
 
 
 # if __name__ == '__main__':
