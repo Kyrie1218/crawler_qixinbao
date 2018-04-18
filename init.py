@@ -107,11 +107,11 @@ class Init(object):
       for ua in lists:
         self.handle.sadd('user_agent_list', ua)
 
+      logging.info('User Agnet 初始化完成')
+
     except Exception as e:
       logging.error(e)
 
-    finally:
-      logging.info('User Agnet 初始化完成')
 
 
 if __name__ == '__main__':
