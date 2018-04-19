@@ -45,11 +45,13 @@ class Driver(object):
       profile.set_preference("network.http.use-cache", False)
       profile.set_preference("browser.cache.disk_cache_ssl", False)
 
-      # 获得初始化生成的IP随机地址 样式：'119.28.152.208:80'
-      # ip_address = self.proxy.get_ip_address()
+      self._set_proxy_plugin(profile)
 
-      # if ip_address:
-      #   profile = self._set_proxy(profile, ip_address)
+      # 获得初始化生成的IP随机地址 样式：'119.28.152.208:80'
+      ip_address = self.proxy.get_ip_address()
+      print(ip_address)
+      if ip_address:
+        profile = self._set_proxy(profile, ip_address)
 
       # 获得初始化生成的 User Agent 信息 样式：'Mozilla/5.0 (X11; Linux x86_64; rv:58.0) Gecko/20100101 Firefox/58.0'
       user_agent = self.proxy.get_user_agent()
@@ -57,7 +59,7 @@ class Driver(object):
       if user_agent:
         profile = self._set_user_agent(profile, user_agent)
 
-      profile.update_preferences()
+      # profile.update_preferences()
 
       driver = webdriver.Firefox(profile, executable_path='lib/geckodriver.exe')
 
@@ -70,27 +72,27 @@ class Driver(object):
     return driver
 
 
-  def _set_header(self, profile):
+  def _set_proxy_plugin(self, profile):
 
     try:
 
       # add new header
-      profile.add_extension("modify_headers-0.7.1.1-fx.xpi")
+      profile.add_extension("lib/modify_headers-0.7.1.1-fx.xpi")
       profile.set_preference("extensions.modify_headers.currentVersion", "0.7.1.1-fx")
       profile.set_preference("modifyheaders.config.active", True)
+      profile.set_preference("modifyheaders.config.alwaysOn", True)
+
       profile.set_preference("modifyheaders.headers.count", 1)
       profile.set_preference("modifyheaders.headers.action0", "Add")
       profile.set_preference("modifyheaders.headers.name0", "Proxy-Switch-Ip")
       profile.set_preference("modifyheaders.headers.value0", "yes")
       profile.set_preference("modifyheaders.headers.enabled0", True)
 
+      Logger.info('启用代理 IP 插件')
+
     except Exception as e:
 
       Logger.error(e)
-
-    finally:
-
-      Logger.info('代理 IP 设置完成')
 
     return profile
 
@@ -113,11 +115,14 @@ class Driver(object):
       profile.set_preference('network.proxy.type', 1)
 
       # 所有协议公用一种代理配置
-      # profile.set_preference('network.proxy.share_proxy_settings', True)
+      profile.set_preference('network.proxy.share_proxy_settings', True)
       profile.set_preference('network.proxy.http', agent_ip)
       profile.set_preference('network.proxy.http_port', int(agent_port))
-      # profile.set_preference('network.proxy.ssl', agent_ip)
-      # profile.set_preference('network.proxy.ssl_port', int(agent_port))
+
+      # 如果是 HTTPS 需要配置
+      profile.set_preference('network.proxy.ssl', agent_ip)
+      profile.set_preference('network.proxy.ssl_port', int(agent_port))
+
       # profile.set_preference("network.proxy.user_name", 'aaaaa')
       # profile.set_preference("network.proxy.password", 'bbbbb')
       # 对于localhost的不用代理，这里必须要配置，否则无法和 webdriver 通讯
@@ -131,14 +136,11 @@ class Driver(object):
       # credentials = b64encode(credentials.encode('ascii')).decode('utf-8')
       # profile.set_preference('extensions.closeproxyauth.authtoken', credentials)
 
+      Logger.info('代理 IP 设置完成')
 
     except Exception as e:
 
       Logger.error(e)
-
-    finally:
-
-      Logger.info('代理 IP 设置完成')
 
     return profile
 
@@ -153,13 +155,11 @@ class Driver(object):
 
       profile.set_preference("general.useragent.override", user_agent)
 
+      Logger.info('User Agent 设置完成')
+
     except Exception as e:
 
       Logger.error(e)
-
-    finally:
-
-      Logger.info('User Agent 设置完成')
 
     return profile
 
@@ -207,12 +207,12 @@ class Driver(object):
         # 添加cookie信息
         # driver.add_cookie(info)
 
+      Logger.info('Cookie 设置完成')
+
     except Exception as e:
 
       Logger.error(e)
 
-    finally:
-      Logger.info('Cookie 设置完成')
 
 
 

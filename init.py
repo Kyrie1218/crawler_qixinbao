@@ -2,8 +2,8 @@
 # -*- coding: UTF-8 -*-
 
 import redis
-import logging
 import configparser
+from tools.logger.logger import Logger
 
 class Init(object):
 
@@ -17,16 +17,27 @@ class Init(object):
       conf.read("config.conf")
 
       # 获取 redis 的 host
-      self.redis_host       = conf.get("redis", "host")
+      self.redis_host = conf.get("redis", "host")
 
       # 获取 redis 的 port
-      self.redis_port       = conf.getint("redis", "port")
+      self.redis_port = conf.getint("redis", "port")
+
+      # 获取抓取页面url地址
+      self.url        = conf.get("or", "url")
+
+      # 获取抓取页面总页数
+      self.total_page = conf.getint("or", "total_page")
+
+
+      self.level = conf.get("log", "level")
 
       # 获取 reids 对象
       self.handle = redis.Redis(self.redis_host, self.redis_port)
 
+      Logger.init(self.level)
+
     except Exception as e:
-      print(e)
+      Logger.error(e)
 
 
   """
@@ -35,10 +46,10 @@ class Init(object):
   def ip_address_list(self):
 
     lists = [
-      '61.135.217.7:80',
+      '121.31.93.157:80',
+      '123.184.88.33:80',
       '119.28.152.208:80',
-      '114.113.126.86:80',
-      '114.113.126.87:80'
+      '122.237.106.247:80'
     ]
 
     try:
@@ -49,10 +60,10 @@ class Init(object):
         self.handle.sadd('ip_address_list', ip)
 
     except Exception as e:
-      logging.error(e)
+      Logger.error(e)
 
     finally:
-      logging.info('IP Address 初始化完成')
+      Logger.info('IP Address 初始化完成')
 
 
 
@@ -107,16 +118,36 @@ class Init(object):
       for ua in lists:
         self.handle.sadd('user_agent_list', ua)
 
-      logging.info('User Agnet 初始化完成')
+      Logger.info('User Agnet 初始化完成')
 
     except Exception as e:
-      logging.error(e)
+      Logger.error(e)
 
+
+
+  def web_url(self):
+
+    try:
+
+      if self.handle.exists('web_url_list'):
+        self.handle.delete('web_url_list')
+
+      for vo in range(1, self.total_page):
+
+        url = "%s%s" % (self.url, vo)
+
+        self.handle.lpush('web_url_list', url)
+
+    except Exception as e:
+
+      Logger.error(e)
+
+    finally:
+
+      Logger.info('抓取页面地址 初始化完成')
 
 
 if __name__ == '__main__':
-
-  logging.basicConfig(level=logging.DEBUG)
 
   init = Init()
 
@@ -125,3 +156,6 @@ if __name__ == '__main__':
 
   # 执行代理 User Angent 初始化
   init.user_agent_list()
+
+  # 执行抓取页面地址初始化
+  init.web_url()

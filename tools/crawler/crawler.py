@@ -2,6 +2,7 @@ import os
 import time
 import redis
 import datetime
+import threading
 import configparser
 from time import sleep
 from bs4 import BeautifulSoup
@@ -156,38 +157,18 @@ class Crawler(object):
 
       for k, vo in enumerate(lists):
 
-        number = self._set_only_number()
-
         name = vo.contents[0].contents[0].string
-        phone = vo.contents[1].string
-        detail = vo.find('dl').find_all('dd')
 
-        if detail[0]:
-          address = detail[0].get_text()
-        else:
-          address = ''
+        if '公司' in name:
 
-        # if detail[1]:
-        #   content = detail[1].get_text()
-        # else:
-        #   content = ''
-
-        company_info = {
-          'name':name,
-          'phone':phone,
-          'address':address,
-          # 'content':content
-        }
-
-        self._set_only_number()
-
-        # 公司名称
-        self.redis_handel.hmset(name, company_info)
+          # 公司名称
+          self.redis_handel.sadd('company_name_list', name)
 
     except Exception as e:
       Logger.error(e)
 
-
+    finally:
+      self.driver.Quit()
 
 
   def _set_only_number(self):
@@ -201,10 +182,13 @@ class Crawler(object):
 
 
 
-  def run(self, url):
+  def run(self):
+
+    #
+    url = self.redis_handel.rpop('web_url_list')
 
     # 加载页面是否完成并且查找指定元素是否存在
-    load_state = self._load_page(url)
+    load_state = self._load_page(url.decode())
 
     # 存在的话继续执行
     if load_state:
@@ -261,6 +245,8 @@ class Crawler(object):
   """
   def __init__(self):
 
+    threading.Thread.__init__(self)
+
     info = self.init()
 
     Logger.init(info['level'])
@@ -272,19 +258,15 @@ class Crawler(object):
     self.page_interval_time = info['page_interval_time']
     self.label              = info['label']
 
-    self.url                = info['url']
-
     self.redis_host = info['redis_host']
     self.redis_port = info['redis_port']
 
     self.redis_handel = redis.Redis(self.redis_host, self.redis_port)
 
     # # 初始化 Driver 对象
-    driver = Driver(self.redis_handel, info['level'])
+    self.driver = Driver(self.redis_handel, info['level'])
 
-    self.handle = driver.get_driver()
-
-    self.run(self.url)
+    self.handle = self.driver.get_driver()
 
 
 # if __name__ == '__main__':
